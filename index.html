@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Knights Cafe</title>
+    <!-- Load React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Load Babel for JSX support -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* General Reset and Body Styles */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Montserrat', sans-serif;
+            color: #1F2937;
+            background-color: #F9FAFB;
+        }
+
+        /* Essential Custom Animations */
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes diceRoll {
+          0% { transform: rotateX(0deg) rotateY(0deg); }
+          100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Start of GameKnightsWebsite.jsx content
+        const { useState, useEffect, useRef } = React;
+
+        // --- Inline SVG Icons (Replaces lucide-react for stability) ---
+        const createIcon = (svgContent) => (props) => (
+            <svg 
+                {...props} 
+                width={props.size || 24} 
+                height={props.size || 24} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                // Use explicit style colors for stability
+                style={{ color: props.style?.color || 'currentColor', width: props.size || 24, height: props.size || 24 }}
+                dangerouslySetInnerHTML={{ __html: svgContent }} 
+            />
+        );
+
+        const MapPin = createIcon('<path d="M12 21.7l-4.9-5.1c-3.1-3.2-3.1-8.3 0-11.5c3.1-3.2 8.2-3.2 11.3 0c3.1 3.2 3.1 8.3 0 11.5L12 21.7z"/><circle cx="12" cy="10" r="3"/>');
+        const Phone = createIcon('<path d="M22 16.9a.8.8 0 01-.7-.3L17 13.1a1.2 1.2 0 00-1.7 0l-.8.8a2.8 2.8 0 01-3.7-3.7l.8-.8a1.2 1.2 0 000-1.7L7.4 2.7a.8.8 0 01-.3-.7c0-.4.3-.7.7-.7h1.6a2.6 2.6 0 012.6 2.6c0 .7-.3 1.4-.8 2L10 8.7a1.4 1.4 0 000 1.9l.4.4a1.8 1.8 0 001.3.5c.5 0 1-.2 1.3-.5l.4-.4a1.4 1.4 0 001.9 0l.9-.9c.6-.6.8-1.5.5-2.2z"/><path d="M17 19.4c0 .4.3.7.7.7h1.6a2.6 2.6 0 002.6-2.6v-1.6c0-.4-.3-.7-.7-.7"/>');
+        const Mail = createIcon('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7L12 16 2 7"/>');
+        const Search = createIcon('<circle cx="11" cy="11" r="8"/><path d="M21 21L16.65 16.65"/>');
+        const Users = createIcon('<path d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M18 10a2 2 0 012-2h1a2 2 0 012 2v2a2 2 0 01-2 2h-1a2 2 0 01-2-2z"/><path d="M3 10a2 2 0 00-2 2v2a2 2 0 002 2h1a2 2 0 002-2v-2a2 2 0 00-2-2z"/>');
+        const Clock = createIcon('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>');
+        const MessageSquare = createIcon('<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>');
+        const MenuIcon = createIcon('<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>');
+        const X = createIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>');
+        const Sparkles = createIcon('<path d="M12 18s4-2 6-5s-2-6-5-6s-6 2-6 5s2 6 5 6zm0 0v6m-6-3l12-10m-6 3l6-3"/>');
+        const Wand2 = createIcon('<path d="M21.7 6.3a2.3 2.3 0 00-3.26-3.26L12 11.08l2.18 2.18 5.6-5.6z"/><path d="M13.1 7.2l6.2 6.2"/><path d="M3 21l3-10"/><path d="M6 14l-3 7"/>');
+        const ScrollText = createIcon('<path d="M21 16V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2z"/><line x1="6" y1="10" x2="18" y2="10"/><line x1="6" y1="14" x2="18" y2="14"/>');
+
+        // --- Brand Assets & Configuration ---
+        const BRAND = {
+        colors: {
+            blue: '#0000FF',
+            green: '#8EDE02',
+            yellow: '#FFE808',
+            orange: '#FF9A00',
+            red: '#FF0000',
+            black: '#000000', 
+            white: '#FFFFFF',
+        },
+        fonts: {
+            main: "'Avenir', 'Montserrat', 'Nunito', sans-serif",
+        },
+        links: {
+            menu: "https://gameknightscafe.petpooja.com/menu",
+            map: "https://maps.google.com/maps?q=8F35%2BR4%20Sharjah%20-%20United%20Arab%20Emirates&t=&z=15&ie=UTF8&iwloc=&output=embed",
+            map_direct: "https://maps.app.goo.gl/zzgwLvZFwSqonAxp9", // Direct link
+            sheet: "https://docs.google.com/spreadsheets/d/1GR_SQOPIZdI4Vgu9BX5sPEYgLw0bQIgtTbDvsgpRO9M/edit?usp=sharing"
+        },
+        // IMPORTANT: These files must exist in the root directory upon deployment
+        logoMark: "64217.png",
+        logoFull: "64218.png" 
+        };
+
+        // --- Mock Data for Games Inventory ---
+        const GAMES_DATA = [
+        { id: 1, name: "Catan", players: "3-4", duration: "60-120m", category: "Strategy", difficulty: "Medium" },
+        { id: 2, name: "Ticket to Ride", players: "2-5", duration: "30-60m", category: "Family", difficulty: "Easy" },
+        { id: 3, name: "Splendor", players: "2-4", duration: "30m", category: "Strategy", difficulty: "Easy" },
+        { id: 4, name: "Pandemic", players: "2-4", duration: "45m", category: "Cooperative", difficulty: "Medium" },
+        { id: 5, name: "Codenames", players: "4-8+", duration: "15m", category: "Party", difficulty: "Easy" },
+        { id: 6, name: "Azul", players: "2-4", duration: "30-45m", category: "Abstract", difficulty: "Easy" },
+        { id: 7, name: "7 Wonders", players: "2-7", duration: "30m", category: "Strategy", difficulty: "Medium" },
+        { id: 8, name: "Dixit", players: "3-6", duration: "30m", category: "Party", difficulty: "Easy" },
+        { id: 9, name: "Monopoly Deal", players: "2-5", duration: "15m", category: "Card", difficulty: "Easy" },
+        { id: 10, name: "Secret Hitler", players: "5-10", duration: "45m", category: "Party", difficulty: "Medium" },
+        ];
+
+        // --- Gemini API Helper (No exponential backoff needed in this file context) ---
+        const callGemini = async (prompt, systemInstruction) => {
+        const apiKey = ""; // Injected by environment
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemInstruction }] }
+        };
+
+        try {
+            const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error('API Call Failed');
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "The spirits are silent right now. Try again later.";
+        } catch (error) {
+            console.error(error);
+            return "The magic faded... please try again.";
+        }
+        };
+
+        // --- Components ---
+
+        // Helper for rendering dice pips using a 3x3 grid for realistic layout
+        const DicePips = ({ number, color }) => {
+        const pipColor = color === BRAND.colors.yellow ? '#000' : color;
+        const basePipStyle = { 
+            backgroundColor: pipColor,
+            boxShadow: '0 0 2px rgba(0,0,0,0.3)',
+            borderRadius: '50%',
+            width: '6px',
+            height: '6px',
+            display: 'inline-block',
+        };
+        
+        // Responsive style adjustment for larger screens
+        useEffect(() => {
+            const updatePipSize = () => {
+                // Use the new, unique class name
+                const pips = document.querySelectorAll('.dice-pip-element');
+                pips.forEach(pip => {
+                    if (window.innerWidth >= 768) {
+                        pip.style.width = '10px';
+                        pip.style.height = '10px';
+                    } else {
+                        pip.style.width = '6px';
+                        pip.style.height = '6px';
+                    }
+                });
+            };
+            updatePipSize();
+            window.addEventListener('resize', updatePipSize);
+            return () => window.removeEventListener('resize', updatePipSize);
+        }, []);
+
+
+        const renderPips = () => {
+            // Use the new, unique class name
+            const pipClass = "dice-pip-element";
+
+            switch(number) {
+            case 1: return <span className={pipClass} style={{...basePipStyle, gridArea: '2 / 2'}} />;
+            case 2: return <>
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '3 / 3'}} />
+            </>;
+            case 3: return <>
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '2 / 2'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '3 / 3'}} />
+            </>;
+            case 4: return <>
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 3'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '3 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '3 / 3'}} />
+            </>;
+            case 5: return <>
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 3'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '2 / 2'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '3 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '3 / 3'}} />
+            </>;
+            case 6: return <>
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '1 / 3'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '2 / 1'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '2 / 3'}} />
+                <span className={pipClass} style={{...basePipStyle, gridArea: '3 / 1'}} />
+                <span className="dice-pip-element" style={{...basePipStyle, gridArea: '3 / 3'}} />
+            </>;
+            default: return null;
+            }
+        };
+
+        return (
+            <div style={{ position: 'absolute', inset: 0, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(3, 1fr)', padding: window.innerWidth >= 768 ? '8px' : '4px', placeItems: 'center' }}>
+            {renderPips()}
+            </div>
+        );
+        };
+
+
+        // 1. 3D Interactive Dice Component
+        const NavDice = ({ label, color, onClick, active, defaultFace = 1 }) => {
+        const [isHovered, setIsHovered] = useState(false);
+        const [currentFace, setCurrentFace] = useState(defaultFace);
+        const [offset, setOffset] = useState('24px');
+
+        useEffect(() => {
+            // Handle responsive dice offset in JS
+            const handleResize = () => {
+            setOffset(window.innerWidth >= 768 ? '32px' : '24px');
+            };
+            handleResize();
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+        }, []);
+
+        useEffect(() => {
+            let interval;
+            if (isHovered || active) {
+            interval = setInterval(() => {
+                setCurrentFace(Math.floor(Math.random() * 6) + 1); 
+            }, 150); 
+            } else {
+            currentFace !== defaultFace && setCurrentFace(defaultFace); 
+            }
+            return () => clearInterval(interval);
+        }, [isHovered, active, defaultFace]);
+
+        // Define transforms using the state-based offset
+        const getTransform = (index) => {
+            switch(index) {
+            case 0: return `translateZ(${offset})`;
+            case 1: return `rotateY(90deg) translateZ(${offset})`;
+            case 2: return `rotateY(180deg) translateZ(${offset})`;
+            case 3: return `rotateY(-90deg) translateZ(${offset})`;
+            case 4: return `rotateX(90deg) translateZ(${offset})`;
+            case 5: return `rotateX(-90deg) translateZ(${offset})`;
+            default: return 'none';
+            }
+        };
+
+        return (
+            <div 
+            // Removed generic 'group' class to eliminate final potential Tailwind conflict
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onClick={onClick}
+            >
+            {/* The 3D Dice Container */}
+            <div style={{ position: 'relative', width: window.innerWidth >= 768 ? '64px' : '48px', height: window.innerWidth >= 768 ? '64px' : '48px', perspective: '1000px' }}>
+                <div 
+                style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    position: 'relative', 
+                    transition: 'transform 0.7s ease-out',
+                    transformStyle: 'preserve-3d',
+                    transform: (isHovered || active) ? 'rotateX(360deg) rotateY(360deg)' : 'rotateX(0) rotateY(0)',
+                    boxShadow: '0 10px 15px rgba(0,0,0,0.2)'
+                }}
+                className={isHovered || active ? 'rotate-dice' : ''} // Retain class for CSS animation
+                >
+                {/* Faces of the dice */}
+                {[1, 2, 3, 4, 5, 6].map((num, index) => (
+                    <div 
+                    key={index} 
+                    style={{
+                        position: 'absolute', 
+                        width: '100%', 
+                        height: '100%', 
+                        border: '1px solid #E5E7EB', // border-gray-200
+                        borderRadius: '8px', // rounded-lg
+                        backgroundColor: 'white',
+                        transform: getTransform(index),
+                        backfaceVisibility: 'hidden',
+                        boxShadow: 'inset 0 0 5px rgba(0,0,0,0.1)' // shadow-inner
+                    }}
+                    >
+                    <DicePips number={index === 0 ? currentFace : (index + 1)} color={color} />
+                    </div>
+                ))}
+                </div>
+            </div>
+            
+            <span style={{ 
+                fontWeight: 'bold', 
+                letterSpacing: '0.05em', // tracking-wider
+                fontSize: window.innerWidth >= 768 ? '1rem' : '0.875rem', // text-sm md:text-base
+                transition: 'color 0.3s',
+                color: active ? BRAND.colors.black : '#6B7280' // text-black : text-gray-500
+            }}>
+                {label}
+            </span>
+            </div>
+        );
+        };
+
+        // 2. Page Components
+        const HomePage = ({ onNavigate }) => (
+        <div style={{ padding: '1.5rem 0', minHeight: '80vh', animation: 'fadeIn 1s ease-out forwards' }}>
+            {/* Hero Section */}
+            <div style={{ textAlign: 'center', padding: '2.5rem 0', paddingBottom: '5rem' }}>
+            <h1 style={{ fontSize: window.innerWidth >= 768 ? '3.75rem' : '2.25rem', fontWeight: '800', marginBottom: '1.5rem', color: BRAND.colors.black }}>
+                Welcome to Game Knights
+            </h1>
+            <p style={{ fontSize: '1.25rem', color: '#4B5563', maxWidth: '42rem', margin: '0 auto', marginBottom: '2rem', fontWeight: '500' }}>
+                Roll the dice, make your move, and enjoy the best board game experience in Sharjah. 
+                Coffee, community, and competition await!
+            </p>
+            <button 
+                onClick={() => onNavigate('games')}
+                style={{ 
+                padding: '1rem 2rem', 
+                borderRadius: '9999px', 
+                color: 'white', 
+                fontWeight: 'bold', 
+                fontSize: '1.125rem', 
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
+                transition: 'transform 0.2s', 
+                backgroundColor: BRAND.colors.green 
+                }}
+                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+                Explore Our Games
+            </button>
+            </div>
+
+            {/* Features Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 768 ? 'repeat(3, 1fr)' : '1fr', gap: '2rem', padding: '0 1rem', maxWidth: '72rem', margin: '0 auto' }}>
+            <div style={{ padding: '1.5rem', borderRadius: '1rem', backgroundColor: 'white', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', borderTop: `4px solid ${BRAND.colors.blue}`, textAlign: 'center' }}>
+                <Users style={{ color: '#2563EB', margin: '0 auto 1rem', display: 'block' }} size={40} />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Community</h3>
+                <p style={{ color: '#4B5563' }}>Join our events and meet fellow board game enthusiasts.</p>
+            </div>
+            <div style={{ padding: '1.5rem', borderRadius: '1rem', backgroundColor: 'white', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', borderTop: `4px solid ${BRAND.colors.yellow}`, textAlign: 'center' }}>
+                <div style={{ margin: '0 auto 1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#FEF9C3' }}>
+                    <span style={{ fontSize: '1.5rem' }}>🎲</span>
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Huge Library</h3>
+                <p style={{ color: '#4B5563' }}>Hundreds of games from classics to modern strategy hits.</p>
+            </div>
+            <div style={{ padding: '1.5rem', borderRadius: '1rem', backgroundColor: 'white', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', borderTop: `4px solid ${BRAND.colors.red}`, textAlign: 'center' }}>
+                <Clock style={{ color: '#DC2626', margin: '0 auto 1rem', display: 'block' }} size={40} />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Good Times</h3>
+                <p style={{ color: '#4B5563' }}>Open late for those intense gaming sessions that go into the night.</p>
+            </div>
+            </div>
+        </div>
+        );
+
+        const GamesPage = () => {
+        const [searchTerm, setSearchTerm] = useState("");
+        const [oracleInput, setOracleInput] = useState("");
+        const [oracleResponse, setOracleResponse] = useState("");
+        const [isOracleLoading, setIsOracleLoading] = useState(false);
+
+        const filteredGames = GAMES_DATA.filter(g => 
+            g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            g.category.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        const handleOracleConsult = async () => {
+            if (!oracleInput.trim()) return;
+            setIsOracleLoading(true);
+            setOracleResponse("");
+            
+            const systemPrompt = `You are 'The Game Oracle', a wise and witty board game sommelier at Game Knights Cafe. 
+            You have access to this list of games: ${JSON.stringify(GAMES_DATA)}. 
+            Based on the user's request, recommend 1 or 2 games from this list. 
+            If their request doesn't match anything perfectly, suggest the closest match or a general classic. 
+            Keep your response short, fun, and formatted with an emoji or two.`;
+
+            const response = await callGemini(oracleInput, systemPrompt);
+            setOracleResponse(response);
+            setIsOracleLoading(false);
+        };
+
+        return (
+            <div style={{ padding: '2rem 1rem', maxWidth: '72rem', margin: '0 auto', minHeight: '80vh', animation: 'fadeIn 1s ease-out forwards' }}>
+            
+            {/* Gemini Feature: The Game Oracle */}
+            <div style={{ marginBottom: '3rem', background: 'linear-gradient(to right, #4F46E5, #9333EA)', borderRadius: '1rem', padding: '2rem', color: 'white', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+                <div style={{ position: 'absolute', top: 0, right: 0, opacity: 0.1, pointerEvents: 'none' }}>
+                    <Sparkles size={200} />
+                </div>
+                
+                <div style={{ position: 'relative', zIndex: 10, maxWidth: '48rem', margin: '0 auto', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: window.innerWidth >= 768 ? '1.875rem' : '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#FCD34D' }}>
+                    <Sparkles style={{ animation: 'pulse 1.5s infinite' }} /> The Game Oracle <Sparkles style={{ animation: 'pulse 1.5s infinite' }} />
+                    </h3>
+                    <p style={{ color: '#C7D2FE', marginBottom: '1.5rem' }}>
+                        Not sure what to play? Tell the Oracle your mood, group size, or what you like, and receive a prophecy.
+                    </p>
+                    
+                    <div style={{ display: 'flex', flexDirection: window.innerWidth >= 768 ? 'row' : 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                        <input 
+                            type="text"
+                            value={oracleInput}
+                            onChange={(e) => setOracleInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleOracleConsult()}
+                            placeholder="e.g. 'I want a fast game for 3 people involving lying'..."
+                            style={{ flexGrow: 1, padding: '0.75rem 1rem', borderRadius: '9999px', color: '#1F2937', outline: 'none', border: '1px solid transparent', boxShadow: '0 0 0 2px #9333EA' }}
+                        />
+                        <button 
+                            onClick={handleOracleConsult}
+                            disabled={isOracleLoading}
+                            style={{ 
+                                backgroundColor: '#FBBF24', 
+                                color: '#3730A3', 
+                                fontWeight: 'bold', 
+                                padding: '0.75rem 2rem', 
+                                borderRadius: '9999px', 
+                                transition: 'all 0.2s', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                gap: '0.5rem',
+                                opacity: isOracleLoading ? 0.5 : 1
+                            }}
+                        >
+                            {isOracleLoading ? <span style={{ animation: 'spin 1s linear infinite' }}>✨</span> : <span>Consult Oracle ✨</span>}
+                        </button>
+                    </div>
+
+                    {oracleResponse && (
+                        <div 
+                            style={{ 
+                                padding: '1rem', 
+                                borderRadius: '0.75rem', 
+                                animation: 'fadeIn 0.5s ease-out forwards',
+                                textAlign: window.innerWidth >= 768 ? 'center' : 'left',
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                backdropFilter: 'blur(4px)',
+                                WebkitBackdropFilter: 'blur(4px)'
+                            }}
+                        >
+                            <p style={{ fontSize: '1.125rem', lineHeight: '1.6', fontStyle: 'italic' }}>"{oracleResponse}"</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                <h2 style={{ fontSize: '2.25rem', fontWeight: 'bold', marginBottom: '1rem', color: BRAND.colors.blue }}>Game Inventory</h2>
+                <p style={{ color: '#4B5563', marginBottom: '1.5rem' }}>Discover your next adventure from our collection.</p>
+                
+                <div style={{ position: 'relative', maxWidth: '28rem', margin: '0 auto' }}>
+                <Search style={{ position: 'absolute', left: '0.75rem', top: '0.75rem', color: '#9CA3AF' }} size={20} />
+                <input 
+                    type="text"
+                    placeholder="Search games..."
+                    style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingBlock: '0.5rem', border: '2px solid #E5E7EB', borderRadius: '9999px', outline: 'none', transition: 'border-color 0.2s' }}
+                    onFocus={e => e.target.style.borderColor = '#3B82F6'}
+                    onBlur={e => e.target.style.borderColor = '#E5E7EB'}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? 'repeat(4, 1fr)' : (window.innerWidth >= 640 ? 'repeat(2, 1fr)' : '1fr'), gap: '1.5rem' }}>
+                {filteredGames.map(game => (
+                <div key={game.id} style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #F3F4F6' }}>
+                    <div style={{ height: '8rem', background: 'linear-gradient(to bottom right, #F3F4F6, #E5E7EB)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '2.5rem', opacity: 0.5 }}>🎲</span>
+                    </div>
+                    <div style={{ padding: '1rem' }}>
+                    <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.25rem', color: '#1F2937' }}>{game.name}</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                        <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#DBEAFE', color: '#1E40AF' }}>{game.category}</span>
+                        <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#FFEDD5', color: '#C2410C' }}>{game.difficulty}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem', color: '#6B7280' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Users size={14}/> {game.players}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock size={14}/> {game.duration}</div>
+                    </div>
+                    </div>
+                </div>
+                ))}
+            </div>
+            
+            {filteredGames.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '5rem 0', color: '#6B7280' }}>
+                No games found matching "{searchTerm}".
+                </div>
+            )}
+            </div>
+        );
+        };
+
+        const InquiryPage = () => {
+        const [formData, setFormData] = useState({
+            name: '',
+            email: '',
+            whatsapp: '',
+            message: ''
+        });
+        const [status, setStatus] = useState('idle');
+        
+        const [partyInput, setPartyInput] = useState("");
+        const [partyIdea, setPartyIdea] = useState("");
+        const [isWizardLoading, setIsWizardLoading] = useState(false);
+        const [showWizard, setShowWizard] = useState(false);
+
+        const handleSubmit = (e) => {
+            e.preventDefault();
+            setStatus('submitting');
+            console.log("Form Data to send to Sheet:", formData);
+            // In a real application, you would send this data to a server endpoint here.
+            // Since this is a client-only file, we simulate a delay.
+            setTimeout(() => {
+            setStatus('success');
+            setFormData({ name: '', email: '', whatsapp: '', message: '' });
+            }, 1500);
+        };
+
+        const handleWizardMagic = async () => {
+            if (!partyInput.trim()) return;
+            setIsWizardLoading(true);
+            setPartyIdea("");
+
+            const systemPrompt = `You are the Grand Party Planner at Game Knights Cafe. 
+            A customer wants to host an event and has provided these details: "${partyInput}".
+            Suggest a Creative Title for their event, a fun 'Vibe' description, and 3 suggested activities or game types. 
+            Format nicely with bullet points. Keep it enthusiastic!`;
+
+            const response = await callGemini(partyInput, systemPrompt);
+            setPartyIdea(response);
+            setIsWizardLoading(false);
+        };
+
+        return (
+            <div style={{ padding: '2rem 1rem', maxWidth: '42rem', margin: '0 auto', minHeight: '80vh', animation: 'fadeIn 1s ease-out forwards' }}>
+            
+            {/* Gemini Feature: Party Planner Wizard */}
+            <div style={{ marginBottom: '2rem' }}>
+                <button 
+                    onClick={() => setShowWizard(!showWizard)}
+                    style={{ width: '100%', background: 'linear-gradient(to right, #FB923C, #F87171)', color: 'white', padding: '1rem', borderRadius: '0.75rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', transition: 'box-shadow 0.2s, transform 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                    onMouseOver={e => e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'}
+                    onMouseOut={e => e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)'}
+                >
+                    <span style={{ fontWeight: 'bold', fontSize: '1.125rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Wand2 style={{ transition: 'transform 0.2s' }} /> 
+                        Need ideas for your event?
+                    </span>
+                    <span 
+                        style={{ fontSize: '0.875rem', padding: '2px 8px', borderRadius: '9999px', color: 'rgba(255, 255, 255, 0.9)', backgroundColor: 'rgba(0, 0, 0, 0.15)' }}
+                    >
+                        Try AI Planner ✨
+                    </span>
+                </button>
+
+                {showWizard && (
+                    <div style={{ backgroundColor: 'white', border: '2px solid #FFEDD5', borderBottomLeftRadius: '0.75rem', borderBottomRightRadius: '0.75rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', padding: '1.5rem', animation: 'slideDown 0.3s ease-out forwards' }}>
+                        <p style={{ color: '#4B5563', marginBottom: '1rem', fontSize: '0.875rem' }}>
+                            Tell our AI Wizard about your event (e.g., "Birthday for a 10 year old who likes space" or "Corporate team building for 20 accountants")
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <input 
+                                type="text" 
+                                value={partyInput}
+                                onChange={(e) => setPartyInput(e.target.value)}
+                                placeholder="Describe your event..."
+                                style={{ flexGrow: 1, padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                                onFocus={e => e.target.style.borderColor = '#F97316'}
+                                onBlur={e => e.target.style.borderColor = '#D1D5DB'}
+                            />
+                            <button 
+                                onClick={handleWizardMagic}
+                                disabled={isWizardLoading}
+                                style={{ backgroundColor: '#F97316', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontWeight: 'bold', transition: 'background-color 0.2s', opacity: isWizardLoading ? 0.5 : 1 }}
+                                onMouseOver={e => e.currentTarget.style.backgroundColor = '#EA580C'}
+                                onMouseOut={e => e.currentTarget.style.backgroundColor = '#F97316'}
+                            >
+                                {isWizardLoading ? 'Conjuring...' : 'Generate Ideas ✨'}
+                            </button>
+                        </div>
+                        {partyIdea && (
+                            <div style={{ backgroundColor: '#FFF7ED', padding: '1rem', borderRadius: '0.5rem', color: '#1F2937', fontSize: '0.875rem', whiteSpace: 'pre-wrap', border: '1px solid #FEE2E2' }}>
+                                {partyIdea}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '2rem', borderTop: `8px solid ${BRAND.colors.orange}` }}>
+                <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center', color: '#1F2937' }}>Make an Inquiry</h2>
+                <p style={{ textAlign: 'center', color: '#4B5563', marginBottom: '2rem' }}>
+                Want to reserve a table, ask about a specific game, or host an event? Let us know!
+                </p>
+
+                {status === 'success' ? (
+                <div style={{ textAlign: 'center', padding: '2.5rem 0' }}>
+                    <div style={{ width: '5rem', height: '5rem', backgroundColor: '#D1FAE5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                    <span style={{ fontSize: '2.5rem', color: '#059669' }}>✓</span>
+                    </div>
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669', marginBottom: '0.5rem' }}>Message Sent!</h3>
+                    <p style={{ color: '#4B5563' }}>We'll get back to you on WhatsApp or Email shortly.</p>
+                    <button 
+                    onClick={() => setStatus('idle')}
+                    style={{ marginTop: '1.5rem', color: '#2563EB', textDecoration: 'underline' }}
+                    >
+                    Send another message
+                    </button>
+                </div>
+                ) : (
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#374151', marginBottom: '0.5rem' }}>Name</label>
+                    <input 
+                        required
+                        type="text" 
+                        style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid #D1D5DB', outline: 'none', transition: 'box-shadow 0.2s' }}
+                        onFocus={e => e.target.style.boxShadow = `0 0 0 2px ${BRAND.colors.orange}, 0 0 0 4px #FBD38D`}
+                        onBlur={e => e.target.style.boxShadow = 'none'}
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        placeholder="Your Name"
+                    />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 768 ? 'repeat(2, 1fr)' : '1fr', gap: '1.5rem' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#374151', marginBottom: '0.5rem' }}>Email</label>
+                        <input 
+                        required
+                        type="email" 
+                        style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid #D1D5DB', outline: 'none', transition: 'box-shadow 0.2s' }}
+                        onFocus={e => e.target.style.boxShadow = `0 0 0 2px ${BRAND.colors.orange}, 0 0 0 4px #FBD38D`}
+                        onBlur={e => e.target.style.boxShadow = 'none'}
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        placeholder="john@example.com"
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#374151', marginBottom: '0.5rem' }}>WhatsApp Number</label>
+                        <input 
+                        required
+                        type="tel" 
+                        style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid #D1D5DB', outline: 'none', transition: 'box-shadow 0.2s' }}
+                        onFocus={e => e.target.style.boxShadow = `0 0 0 2px ${BRAND.colors.orange}, 0 0 0 4px #FBD38D`}
+                        onBlur={e => e.target.style.boxShadow = 'none'}
+                        value={formData.whatsapp}
+                        onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                        placeholder="+971 50 123 4567"
+                        />
+                    </div>
+                    </div>
+
+                    <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#374151', marginBottom: '0.5rem' }}>Message</label>
+                    <textarea 
+                        required
+                        rows="4"
+                        style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem', border: '1px solid #D1D5DB', outline: 'none', transition: 'box-shadow 0.2s' }}
+                        onFocus={e => e.target.style.boxShadow = `0 0 0 2px ${BRAND.colors.orange}, 0 0 0 4px #FBD38D`}
+                        onBlur={e => e.target.style.boxShadow = 'none'}
+                        value={formData.message}
+                        onChange={(e) => setFormData({...formData, message: e.target.value})}
+                        placeholder="How can we help you?"
+                    ></textarea>
+                    </div>
+
+                    <button 
+                    type="submit"
+                    disabled={status === 'submitting'}
+                    style={{ 
+                        width: '100%', 
+                        padding: '1rem 0', 
+                        borderRadius: '0.5rem', 
+                        color: 'white', 
+                        fontWeight: 'bold', 
+                        fontSize: '1.125rem', 
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
+                        transition: 'all 0.2s',
+                        backgroundColor: BRAND.colors.blue,
+                        opacity: status === 'submitting' ? 0.7 : 1,
+                    }}
+                    onMouseOver={e => e.currentTarget.style.boxShadow = '0 10px 15px rgba(0,0,0,0.2)'}
+                    onMouseOut={e => e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)'}
+                    >
+                    {status === 'submitting' ? 'Sending...' : 'Submit Inquiry'}
+                    </button>
+                    
+                    <p style={{ fontSize: '0.75rem', textAlign: 'center', color: '#9CA3AF', marginTop: '1rem' }}>
+                    Data is securely processed. By submitting, you agree to be contacted by Game Knights.
+                    </p>
+                </form>
+                )}
+            </div>
+            </div>
+        );
+        };
+
+        const ContactPage = () => (
+        <div style={{ padding: '2rem 1rem', maxWidth: '56rem', margin: '0 auto', minHeight: '80vh', animation: 'fadeIn 1s ease-out forwards' }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                <h2 style={{ fontSize: '2.25rem', fontWeight: 'bold', marginBottom: '1rem', color: BRAND.colors.red }}>Contact Us</h2>
+                <p style={{ color: '#4B5563' }}>Come visit us for a game!</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 768 ? 'repeat(2, 1fr)' : '1fr', gap: '2rem', alignItems: 'flex-start' }}>
+                <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '1rem', boxShadow: '0 10px 15px rgba(0,0,0,0.1)' }}>
+                    <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <MapPin style={{ color: '#EF4444' }} /> Location
+                    </h3>
+                    <address style={{ fontStyle: 'normal', color: '#4B5563', lineHeight: '1.6', marginBottom: '2rem' }}>
+                        <strong style={{ fontWeight: 'bold' }}>Game Knights Cafe</strong><br/>
+                        Shop#2, RAK 2 Building,<br/>
+                        Behind Sheikh Khalifa Bin Zayed Al Nahyan Road<br/>
+                        Muwaileh Commercial, Industrial Area<br/>
+                        Sharjah, UAE
+                    </address>
+
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Clock style={{ color: '#3B82F6' }} /> Opening Hours
+                    </h3>
+                    <ul style={{ color: '#4B5563', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <li style={{ display: 'flex', justifyContent: 'space-between' }}><span>Weekdays:</span> <span style={{ fontWeight: 'bold' }}>10:00 AM - 12:00 AM</span></li>
+                        <li style={{ display: 'flex', justifyContent: 'space-between' }}><span>Weekends:</span> <span style={{ fontWeight: 'bold' }}>10:00 AM - 02:00 AM</span></li>
+                    </ul>
+                </div>
+
+                <div style={{ height: '24rem', minHeight: '20rem', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', border: '4px solid white' }}>
+                    <iframe 
+                        src={BRAND.links.map}
+                        width="100%" 
+                        height="100%" 
+                        style={{ border: 0 }} 
+                        allowFullScreen="" 
+                        loading="lazy"
+                        title="Game Knights Location"
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+        );
+
+        const Footer = () => (
+        <footer style={{ backgroundColor: '#1F2937', color: 'white', padding: '3rem 0 1.5rem', marginTop: 'auto' }}>
+            <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '0 1rem' }}>
+            <div style={{ display: 'flex', flexDirection: window.innerWidth >= 768 ? 'row' : 'column', justifyContent: 'space-between', alignItems: window.innerWidth >= 768 ? 'center' : 'flex-start', gap: '2rem', marginBottom: '2rem' }}>
+                <div style={{ textAlign: window.innerWidth >= 768 ? 'left' : 'center', width: '100%', maxWidth: window.innerWidth >= 768 ? 'auto' : '18rem', margin: window.innerWidth >= 768 ? '0' : '0 auto' }}>
+                    <h4 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>GameKnights</h4>
+                    <p style={{ color: '#9CA3AF', fontSize: '0.875rem' }}>
+                        The ultimate destination for board game lovers in Sharjah.
+                    </p>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '1.5rem', margin: window.innerWidth >= 768 ? '0' : '0 auto' }}>
+                    <a href="#" style={{ color: 'white', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#60A5FA'} onMouseOut={e => e.currentTarget.style.color = 'white'}><MessageSquare size={24} /></a>
+                    <a href="#" style={{ color: 'white', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#4ADE80'} onMouseOut={e => e.currentTarget.style.color = 'white'}><Phone size={24} /></a>
+                    <a href="#" style={{ color: 'white', transition: 'color 0.2s' }} onMouseOver={e => e.currentTarget.style.color = '#F87171'} onMouseOut={e => e.currentTarget.style.color = 'white'}><Mail size={24} /></a>
+                </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #374151', paddingTop: '2rem', display: 'flex', flexDirection: window.innerWidth >= 1024 ? 'row' : 'column', gap: '2rem' }}>
+                <div style={{ width: window.innerWidth >= 1024 ? '50%' : '100%' }}>
+                    <h5 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '1rem', color: '#D1D5DB' }}>Visit Us</h5>
+                    <p style={{ color: '#9CA3AF', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.6' }}>
+                        Game Knights Cafe, Shop#2, RAK 2 building,<br/> 
+                        behind Sheikh Khalifa Bin Zayed Al Nahyan Road - <br/>
+                        Muwaileh Commercial - Industrial Area - Sharjah
+                    </p>
+                    <a 
+                        href={BRAND.links.map_direct} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#60A5FA', fontSize: '0.875rem', transition: 'color 0.2s' }}
+                        onMouseOver={e => e.currentTarget.style.color = '#3B82F6'}
+                        onMouseOut={e => e.currentTarget.style.color = '#60A5FA'}
+                    >
+                        <MapPin size={16} /> Open in Google Maps
+                    </a>
+                </div>
+                <div style={{ width: window.innerWidth >= 1024 ? '50%' : '100%', height: '12rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: '#374151' }}>
+                    <iframe 
+                        src={BRAND.links.map}
+                        width="100%" 
+                        height="100%" 
+                        style={{ border: 0, opacity: 0.8 }} 
+                        allowFullScreen="" 
+                        loading="lazy"
+                        title="Footer Location Map"
+                    ></iframe>
+                </div>
+            </div>
+
+            <div style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.75rem', marginTop: '3rem' }}>
+                &copy; {new Date().getFullYear()} Game Knights Cafe. All rights reserved.
+            </div>
+            </div>
+        </footer>
+        );
+
+        // --- Main App Component ---
+
+        function App() {
+        const [activePage, setActivePage] = useState('home');
+        const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+        useEffect(() => {
+            window.scrollTo(0, 0);
+        }, [activePage]);
+
+        const handleNavClick = (page) => {
+            if (page === 'menu') {
+            window.open(BRAND.links.menu, '_blank');
+            } else {
+            setActivePage(page);
+            setIsMobileMenuOpen(false);
+            }
+        };
+
+        const renderPage = () => {
+            switch(activePage) {
+            case 'home': return <HomePage onNavigate={handleNavClick} />;
+            case 'games': return <GamesPage />;
+            case 'inquiry': return <InquiryPage />;
+            case 'contact': return <ContactPage />;
+            default: return <HomePage onNavigate={handleNavClick} />;
+            }
+        };
+
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F9FAFB', fontFamily: BRAND.fonts.main, color: '#1F2937' }}>
+            {/* Note: CSS is defined in the <style> block in the HTML head for clean deployment */}
+
+            {/* Navigation Bar */}
+            <nav style={{ backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', position: 'sticky', top: 0, zIndex: 50 }}>
+                <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '0.75rem 1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    
+                    {/* Logo Section */}
+                    <div 
+                    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} 
+                    onClick={() => handleNavClick('home')}
+                    >
+                        <img 
+                            src={BRAND.logoFull} 
+                            alt="Game Knights Logo" 
+                            style={{ height: window.innerWidth >= 768 ? '64px' : '48px', objectFit: 'contain' }}
+                            onError={(e) => {
+                                e.target.onerror = null; 
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'block';
+                            }}
+                        />
+                        {/* Text fallback for logo image */}
+                        <span style={{ 
+                            fontSize: window.innerWidth >= 768 ? '1.5rem' : '1.25rem', 
+                            fontWeight: '900', 
+                            marginLeft: '0.5rem', 
+                            display: 'none', 
+                            color: BRAND.colors.black 
+                        }}>
+                            GameKnights
+                        </span>
+                    </div>
+
+                    {/* Desktop Dice Navigation - Shuffled Colors */}
+                    <div style={{ display: window.innerWidth >= 768 ? 'flex' : 'none', alignItems: 'center', gap: window.innerWidth >= 1024 ? '3rem' : '2rem' }}>
+                    <NavDice 
+                        label="MENU" 
+                        color={BRAND.colors.yellow} 
+                        active={false} 
+                        onClick={() => handleNavClick('menu')}
+                        defaultFace={1}
+                    />
+                    <NavDice 
+                        label="GAMES" 
+                        color={BRAND.colors.green} 
+                        active={activePage === 'games'}
+                        onClick={() => handleNavClick('games')}
+                        defaultFace={2}
+                    />
+                    <NavDice 
+                        label="INQUIRY" 
+                        color={BRAND.colors.blue} 
+                        active={activePage === 'inquiry'}
+                        onClick={() => handleNavClick('inquiry')}
+                        defaultFace={3}
+                    />
+                    <NavDice 
+                        label="CONTACT" 
+                        color={BRAND.colors.red} 
+                        active={activePage === 'contact'}
+                        onClick={() => handleNavClick('contact')}
+                        defaultFace={4}
+                    />
+                    </div>
+
+                    {/* Mobile Menu Button */}
+                    <div style={{ display: window.innerWidth >= 768 ? 'none' : 'block' }}>
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        style={{ padding: '0.5rem', color: '#4B5563' }}
+                    >
+                        {isMobileMenuOpen ? <X size={32} /> : <MenuIcon size={32} />}
+                    </button>
+                    </div>
+                </div>
+
+                {/* Mobile Dropdown Menu */}
+                {isMobileMenuOpen && (
+                    <div style={{ display: 'block', paddingTop: '1rem', paddingBottom: '0.5rem', borderTop: '1px solid #E5E7EB', marginTop: '0.5rem', animation: 'slideDown 0.3s ease-out forwards' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', placeItems: 'center' }}>
+                        <NavDice label="MENU" color={BRAND.colors.yellow} onClick={() => handleNavClick('menu')} defaultFace={1} />
+                        <NavDice label="GAMES" color={BRAND.colors.green} active={activePage === 'games'} onClick={() => handleNavClick('games')} defaultFace={2} />
+                        <NavDice label="INQUIRY" color={BRAND.colors.blue} active={activePage === 'inquiry'} onClick={() => handleNavClick('inquiry')} defaultFace={3} />
+                        <NavDice label="CONTACT" color={BRAND.colors.red} active={activePage === 'contact'} onClick={() => handleNavClick('contact')} defaultFace={4} />
+                    </div>
+                    </div>
+                )}
+                </div>
+            </nav>
+
+            <main style={{ flexGrow: 1 }}>
+                {renderPage()}
+            </main>
+
+            <Footer />
+            </div>
+        );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
