@@ -119,7 +119,8 @@
         },
         // IMPORTANT: These files must exist in the root directory upon deployment
         logoMark: "public/64217.png",
-        logoFull: "public/64218.png" 
+        logoFull: "public/64218.png",
+        heroLogo: "public/logo boardGameCafe.jpg"
         };
 
         // --- Mock Data for Games Inventory ---
@@ -139,8 +140,7 @@
         "players": "3 - 10",
         "duration": "20",
         "category": "Party Game",
-        "difficulty": "Easy",
-        "image": "public/5 Second Rule Uncensored.png"
+        "difficulty": "Easy"
     },
     {
         "id": 3,
@@ -148,8 +148,7 @@
         "players": "2 - 5",
         "duration": "30",
         "category": "Card Game",
-        "difficulty": "Medium",
-        "image": "public/Arab Deal.jpeg"
+        "difficulty": "Medium"
     },
     {
         "id": 4,
@@ -157,8 +156,7 @@
         "players": "2 - 2",
         "duration": "25",
         "category": "Deductive",
-        "difficulty": "Easy",
-        "image": "public/123 Cups.png"
+        "difficulty": "Easy"
     },
     {
         "id": 5,
@@ -166,8 +164,7 @@
         "players": "4 - 12",
         "duration": "45",
         "category": "Word Game",
-        "difficulty": "Medium",
-        "image": "public/123 Cups.png"
+        "difficulty": "Medium"
     },
     {
         "id": 6,
@@ -175,8 +172,7 @@
         "players": "5 - 10",
         "duration": "30",
         "category": "Social Deduct",
-        "difficulty": "Medium",
-        "image": "public/123 Cups.png"
+        "difficulty": "Medium"
     },
     {
         "id": 7,
@@ -184,8 +180,7 @@
         "players": "2 - 4",
         "duration": "30",
         "category": "Abstract",
-        "difficulty": "Hard",
-        "image": "public/123 Cups.png"
+        "difficulty": "Hard"
     },
     {
         "id": 8,
@@ -193,8 +188,7 @@
         "players": "2 - 2",
         "duration": "30",
         "category": "Strategy",
-        "difficulty": "Medium",
-        "image": "public/123 Cups.png"
+        "difficulty": "Medium"
     },
     {
         "id": 9,
@@ -202,8 +196,7 @@
         "players": "2 - 2",
         "duration": "20",
         "category": "Strategy",
-        "difficulty": "Medium",
-        "image": "public/123 Cups.png"
+        "difficulty": "Medium"
     },
     {
         "id": 10,
@@ -211,8 +204,7 @@
         "players": "3 - 8",
         "duration": "25",
         "category": "Party Game",
-        "difficulty": "Easy",
-        "image": "public/123 Cups.png"
+        "difficulty": "Easy"
     },
     {
         "id": 11,
@@ -220,8 +212,7 @@
         "players": "2 - 6",
         "duration": "40",
         "category": "Trivia Game",
-        "difficulty": "Medium",
-        "image": "public/123 Cups.png"
+        "difficulty": "Medium"
     },
     {
         "id": 12,
@@ -229,8 +220,7 @@
         "players": "2 - 4",
         "duration": "15",
         "category": "Card Game",
-        "difficulty": "Easy",
-        "image": "public/123 Cups.png"
+        "difficulty": "Easy"
     },
     {
         "id": 13,
@@ -238,8 +228,7 @@
         "players": "2 - 4",
         "duration": "10",
         "category": "Dexterity",
-        "difficulty": "Easy",
-        "image": "public/123 Cups.png"
+        "difficulty": "Easy"
     },
     {
         "id": 14,
@@ -247,8 +236,7 @@
         "players": "2 - 8",
         "duration": "30",
         "category": "Racing Game",
-        "difficulty": "Medium",
-        "image": "public/123 Cups.png"
+        "difficulty": "Medium"
     },
     {
         "id": 15,
@@ -256,8 +244,7 @@
         "players": "4 - 20+",
         "duration": "30+",
         "category": "Party Game",
-        "difficulty": "Easy",
-        "image": "public/123 Cups.png"
+        "difficulty": "Easy"
     },
     {
         "id": 16,
@@ -266,7 +253,7 @@
         "duration": "60",
         "category": "Strategy",
         "difficulty": "Medium",
-        "image": "public/Catan.png"
+        "image": "public/123 Cups.png"
     },
     {
         "id": 17,
@@ -1274,9 +1261,19 @@
         <div style={{ padding: '1.5rem 0', minHeight: '80vh', animation: 'fadeIn 1s ease-out forwards' }}>
             {/* Hero Section */}
             <div style={{ textAlign: 'center', padding: '2.5rem 0', paddingBottom: '5rem' }}>
-            <h1 style={{ fontSize: window.innerWidth >= 768 ? '3.75rem' : '2.25rem', fontWeight: '800', marginBottom: '1.5rem', color: BRAND.colors.black }}>
-                Welcome to Game Knights
-            </h1>
+            <img 
+                src={BRAND.heroLogo} 
+                alt="Game Knights - The Board Game Cafe"
+                style={{ 
+                    maxWidth: '100%', 
+                    width: '600px', // Optimal width for the hero logo
+                    height: 'auto', 
+                    margin: '0 auto 1.5rem', 
+                    display: 'block',
+                    // This makes the white background of the JPG transparent against the light gray page
+                    mixBlendMode: 'multiply' 
+                }}
+            />
             <p style={{ fontSize: '1.25rem', color: '#4B5563', maxWidth: '42rem', margin: '0 auto', marginBottom: '2rem', fontWeight: '500' }}>
                 Roll the dice, make your move, and enjoy the best board game experience in Sharjah. 
                 Coffee, community, and competition await!
