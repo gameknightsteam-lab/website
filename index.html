@@ -52,6 +52,11 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        
+        /* 3D Dice Animation Class */
+        .rotate-dice {
+            animation: diceRoll 0.7s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -1315,6 +1320,19 @@
             g.category.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
+        // Helper to determine age restriction based on game title
+        const getGameAge = (name) => {
+            const n = name.toLowerCase();
+            // Adult / Mature Games
+            if (n.includes("uncensored") || n.includes("against humanity") || n.includes("what do you meme") || n.includes("fork milk") || n.includes("secret hitler") || n.includes("drunk")) return "18+";
+            // Teen / Complex Social Deduction
+            if (n.includes("case files") || n.includes("sherlock") || n.includes("avalon") || n.includes("resistance") || n.includes("scotland yard") || n.includes("shasn")) return "13+";
+            // Kids / Simple Dexterity
+            if (n.includes("kids") || n.includes("junior") || n.includes("hippo") || n.includes("ludo") || n.includes("snakes") || n.includes("match") || n.includes("cups") || n.includes("spot it") || n.includes("dobble") || n.includes("fish") || n.includes("monkey")) return "5+";
+            // Default Family/Strategy
+            return "8+";
+        };
+
         const handleOracleConsult = async () => {
             if (!oracleInput.trim()) return;
             setIsOracleLoading(true);
@@ -1416,34 +1434,58 @@
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth >= 1024 ? 'repeat(4, 1fr)' : (window.innerWidth >= 640 ? 'repeat(2, 1fr)' : '1fr'), gap: '1.5rem' }}>
-                {filteredGames.map(game => (
-                <div key={game.id} style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #F3F4F6' }}>
-                    <div style={{ height: '8rem', background: 'linear-gradient(to bottom right, #F3F4F6, #E5E7EB)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {game.image ? (
-                            <img 
-                                src={game.image} 
-                                alt={game.name} 
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} 
-                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                            />
-                        ) : (
-                            <span style={{ fontSize: '2.5rem', opacity: 0.5 }}>🎲</span>
-                        )}
+                {filteredGames.map(game => {
+                    const ageRating = getGameAge(game.name);
+                    const isAdult = ageRating === "18+";
+                    
+                    return (
+                    <div key={game.id} style={{ backgroundColor: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #F3F4F6' }}>
+                        <div style={{ height: '8rem', background: 'linear-gradient(to bottom right, #F3F4F6, #E5E7EB)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
+                            {/* Overlay Age Tag on Image for visibility */}
+                            {isAdult && (
+                                <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', backgroundColor: '#DC2626', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 'bold', zIndex: 10 }}>
+                                    18+ ONLY
+                                </div>
+                            )}
+                            {game.image ? (
+                                <img 
+                                    src={game.image} 
+                                    alt={game.name} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} 
+                                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                                />
+                            ) : (
+                                <span style={{ fontSize: '2.5rem', opacity: 0.5 }}>🎲</span>
+                            )}
+                        </div>
+                        <div style={{ padding: '1rem' }}>
+                        <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.25rem', color: '#1F2937' }}>{game.name}</h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#DBEAFE', color: '#1E40AF' }}>{game.category}</span>
+                            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#FFEDD5', color: '#C2410C' }}>{game.difficulty}</span>
+                            {/* Age Tag in Details */}
+                            <span style={{ 
+                                fontSize: '0.75rem', 
+                                padding: '2px 8px', 
+                                borderRadius: '4px', 
+                                backgroundColor: isAdult ? '#FEE2E2' : '#ECFDF5', 
+                                color: isAdult ? '#991B1B' : '#047857',
+                                border: isAdult ? '1px solid #FCA5A5' : '1px solid #6EE7B7',
+                                fontWeight: 'bold',
+                                display: 'inline-flex',
+                                alignItems: 'center'
+                            }}>
+                                {isAdult ? '🔞' : '👶'} {ageRating}
+                            </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem', color: '#6B7280' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Users size={14}/> {game.players}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock size={14}/> {game.duration}</div>
+                        </div>
+                        </div>
                     </div>
-                    <div style={{ padding: '1rem' }}>
-                    <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.25rem', color: '#1F2937' }}>{game.name}</h3>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                        <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#DBEAFE', color: '#1E40AF' }}>{game.category}</span>
-                        <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#FFEDD5', color: '#C2410C' }}>{game.difficulty}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.875rem', color: '#6B7280' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Users size={14}/> {game.players}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock size={14}/> {game.duration}</div>
-                    </div>
-                    </div>
-                </div>
-                ))}
+                )})}
             </div>
             
             {filteredGames.length === 0 && (
