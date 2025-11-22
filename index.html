@@ -1455,7 +1455,7 @@
         );
         };
 
-        const InquiryPage = () => {
+        const EnquiryPage = () => {
         const [formData, setFormData] = useState({
             name: '',
             email: '',
@@ -1583,7 +1583,7 @@
             </div>
 
             <div style={{ backgroundColor: 'white', borderRadius: '1rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', padding: '2rem', borderTop: `8px solid ${BRAND.colors.orange}` }}>
-                <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center', color: '#1F2937' }}>Make an Inquiry</h2>
+                <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center', color: '#1F2937' }}>Make an Enquiry</h2>
                 <p style={{ textAlign: 'center', color: '#4B5563', marginBottom: '2rem' }}>
                 Want to reserve a table, ask about a specific game, or host an event? Let us know!
                 </p>
@@ -1685,7 +1685,7 @@
                     onMouseOver={e => e.currentTarget.style.boxShadow = '0 10px 15px rgba(0,0,0,0.2)'}
                     onMouseOut={e => e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)'}
                     >
-                    {status === 'submitting' ? 'Sending...' : 'Submit Inquiry'}
+                    {status === 'submitting' ? 'Sending...' : 'Submit Enquiry'}
                     </button>
                     
                     <p style={{ fontSize: '0.75rem', textAlign: 'center', color: '#9CA3AF', marginTop: '1rem' }}>
@@ -1822,7 +1822,7 @@
             switch(activePage) {
             case 'home': return <HomePage onNavigate={handleNavClick} />;
             case 'games': return <GamesPage />;
-            case 'inquiry': return <InquiryPage />;
+            case 'enquiry': return <EnquiryPage />;
             case 'contact': return <ContactPage />;
             default: return <HomePage onNavigate={handleNavClick} />;
             }
@@ -1881,10 +1881,10 @@
                         defaultFace={2}
                     />
                     <NavDice 
-                        label="INQUIRY" 
+                        label="ENQUIRY" 
                         color={BRAND.colors.blue} 
-                        active={activePage === 'inquiry'}
-                        onClick={() => handleNavClick('inquiry')}
+                        active={activePage === 'enquiry'}
+                        onClick={() => handleNavClick('enquiry')}
                         defaultFace={3}
                     />
                     <NavDice 
@@ -1913,7 +1913,7 @@
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', placeItems: 'center' }}>
                         <NavDice label="MENU" color={BRAND.colors.yellow} onClick={() => handleNavClick('menu')} defaultFace={1} />
                         <NavDice label="GAMES" color={BRAND.colors.green} active={activePage === 'games'} onClick={() => handleNavClick('games')} defaultFace={2} />
-                        <NavDice label="INQUIRY" color={BRAND.colors.blue} active={activePage === 'inquiry'} onClick={() => handleNavClick('inquiry')} defaultFace={3} />
+                        <NavDice label="ENQUIRY" color={BRAND.colors.blue} active={activePage === 'enquiry'} onClick={() => handleNavClick('enquiry')} defaultFace={3} />
                         <NavDice label="CONTACT" color={BRAND.colors.red} active={activePage === 'contact'} onClick={() => handleNavClick('contact')} defaultFace={4} />
                     </div>
                     </div>
