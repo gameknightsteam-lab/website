@@ -1575,21 +1575,19 @@ const callGemini = async (prompt, systemInstruction) => {
                     </div>
 
                     {oracleResponse && (
-    <div 
-        style={{ 
-            padding: '1.5rem', 
-            borderRadius: '0.75rem', 
-            animation: 'fadeIn 0.5s ease-out forwards',
-            // 1. FIXED: Force left alignment
-            textAlign: 'left',
-            // 2. FIXED: Brand Gradient (Blue -> Light Blue -> White)
-            background: 'linear-gradient(135deg, #0000FF 0%, #0D8CFF 50%, #FFFFFF 100%)',
-            // Added a stronger shadow so the box pops out from the purple background
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', 
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-        }}
-    >
-        <p style={{ 
+                        <div 
+                            style={{ 
+                                padding: '1rem', 
+                                borderRadius: '0.75rem', 
+                                animation: 'fadeIn 0.5s ease-out forwards',
+                                textAlign: window.innerWidth >= 110000768 ? 'center' : 'left',
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                backdropFilter: 'blur(4px)',
+                                WebkitBackdropFilter: 'blur(4px)'
+                            }}
+                        >
+                            <p style={{ 
             fontSize: '1.125rem', 
             lineHeight: '1.6', 
             fontStyle: 'italic',
@@ -1600,8 +1598,8 @@ const callGemini = async (prompt, systemInstruction) => {
         }}>
             "{oracleResponse}"
         </p>
-    </div>
-)}
+                        </div>
+                    )}
                 </div>
             </div>
 
