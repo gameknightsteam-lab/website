@@ -33,6 +33,27 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
+
+	/* Oracle Thinking Animation */
+.typing-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 3px;
+    background-color: #3730A3; /* Indigo color to match button text */
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
         /* General Reset and Body Styles */
         body { 
             margin: 0; 
@@ -1484,8 +1505,8 @@ const callGemini = async (prompt, systemInstruction) => {
             setOracleResponse("");
             
             const systemPrompt = `You are 'The Game Oracle', a wise and witty board game sommelier at Game Knights Cafe. 
-            You have access to this list of games: ${JSON.stringify(GAMES_DATA)}. 
-            Based on the user's request, recommend 1 or 2 games from this list. 
+            You have access to this list of games: ${JSON.stringify(GAMES_DATA)}.
+	    Go through the individual tags of difficulty, categories and players within the json data and based on the user's request, recommend 1 or 2 games from this list. 
             If their request doesn't match anything perfectly, suggest the closest match or a general classic. 
             Keep your response short, fun, and formatted with an emoji or two.`;
 
@@ -1521,24 +1542,36 @@ const callGemini = async (prompt, systemInstruction) => {
                             style={{ flexGrow: 1, padding: '0.75rem 1rem', borderRadius: '9999px', color: '#1F2937', outline: 'none', border: '1px solid transparent', boxShadow: '0 0 0 2px #9333EA' }}
                         />
                         <button 
-                            onClick={handleOracleConsult}
-                            disabled={isOracleLoading}
-                            style={{ 
-                                backgroundColor: '#FBBF24', 
-                                color: '#3730A3', 
-                                fontWeight: 'bold', 
-                                padding: '0.75rem 2rem', 
-                                borderRadius: '9999px', 
-                                transition: 'all 0.2s', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                gap: '0.5rem',
-                                opacity: isOracleLoading ? 0.5 : 1
-                            }}
-                        >
-                            {isOracleLoading ? <span style={{ animation: 'spin 1s linear infinite' }}>✨</span> : <span>Consult Oracle ✨</span>}
-                        </button>
+    onClick={handleOracleConsult}
+    disabled={isOracleLoading}
+    style={{ 
+        backgroundColor: '#FBBF24', 
+        color: '#3730A3', 
+        fontWeight: 'bold', 
+        padding: '0.75rem 2rem', 
+        borderRadius: '9999px', 
+        transition: 'all 0.2s', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: '0.5rem',
+        opacity: isOracleLoading ? 0.7 : 1,
+        cursor: isOracleLoading ? 'wait' : 'pointer'
+    }}
+>
+    {isOracleLoading ? (
+        <>
+            <span>Consulting</span>
+            <div style={{ display: 'flex', alignItems: 'center', marginLeft: '4px' }}>
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
+            </div>
+        </>
+    ) : (
+        <span>Consult Oracle ✨</span>
+    )}
+</button>
                     </div>
 
                     {oracleResponse && (
