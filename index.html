@@ -1179,8 +1179,8 @@ const callGemini = async (prompt, systemInstruction) => {
     // REPLACE THIS TEXT WITH YOUR ACTUAL KEY starting with "AIza..."
     const apiKey = "AIzaSyAtkld4atdSwIdcOehTF9RtBqtJezmdozo"; 
     
-    // CHANGED: Switched to the stable gemini-1.5-flash model
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // CHANGED: Switched to the stable gemini-2.5-flash model
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
     const payload = {
         contents: [{ parts: [{ text: prompt }] }],
