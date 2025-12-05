@@ -1504,7 +1504,7 @@ const callGemini = async (prompt, systemInstruction) => {
             setIsOracleLoading(true);
             setOracleResponse("");
             
-            const systemPrompt = `You are 'The Game Oracle', a wise and witty board game sommelier at Game Knights Cafe. 
+            const systemPrompt = `You are 'The Game Knights Oracle', a wise and witty board game sommelier at Game Knights Cafe. 
             You have access to this list of games: ${JSON.stringify(GAMES_DATA)}.
 	    Go through the individual tags of difficulty, categories and players within the json data and based on the user's request, recommend 1 or 2 games from this list. 
             If their request doesn't match anything perfectly, suggest the closest match or a general classic. 
@@ -1526,7 +1526,7 @@ const callGemini = async (prompt, systemInstruction) => {
                 
                 <div style={{ position: 'relative', zIndex: 10, maxWidth: '48rem', margin: '0 auto', textAlign: 'center' }}>
                     <h3 style={{ fontSize: window.innerWidth >= 768 ? '1.875rem' : '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#FCD34D' }}>
-                    <Sparkles style={{ animation: 'pulse 1.5s infinite' }} /> The Game Oracle <Sparkles style={{ animation: 'pulse 1.5s infinite' }} />
+                    <Sparkles style={{ animation: 'pulse 1.5s infinite' }} /> The Game Knights Oracle <Sparkles style={{ animation: 'pulse 1.5s infinite' }} />
                     </h3>
                     <p style={{ color: '#C7D2FE', marginBottom: '1.5rem' }}>
                         Not sure what to play? Tell the Oracle your mood, group size, or what you like, and receive a prophecy.
@@ -1575,21 +1575,33 @@ const callGemini = async (prompt, systemInstruction) => {
                     </div>
 
                     {oracleResponse && (
-                        <div 
-                            style={{ 
-                                padding: '1rem', 
-                                borderRadius: '0.75rem', 
-                                animation: 'fadeIn 0.5s ease-out forwards',
-                                textAlign: window.innerWidth >= 768 ? 'center' : 'left',
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                backdropFilter: 'blur(4px)',
-                                WebkitBackdropFilter: 'blur(4px)'
-                            }}
-                        >
-                            <p style={{ fontSize: '1.125rem', lineHeight: '1.6', fontStyle: 'italic' }}>"{oracleResponse}"</p>
-                        </div>
-                    )}
+    <div 
+        style={{ 
+            padding: '1.5rem', 
+            borderRadius: '0.75rem', 
+            animation: 'fadeIn 0.5s ease-out forwards',
+            // 1. FIXED: Force left alignment
+            textAlign: 'left',
+            // 2. FIXED: Brand Gradient (Blue -> Light Blue -> White)
+            background: 'linear-gradient(135deg, #0000FF 0%, #0D8CFF 50%, #FFFFFF 100%)',
+            // Added a stronger shadow so the box pops out from the purple background
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)', 
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}
+    >
+        <p style={{ 
+            fontSize: '1.125rem', 
+            lineHeight: '1.6', 
+            fontStyle: 'italic',
+            color: 'white',
+            margin: 0,
+            // Critical: Added text-shadow so white text is readable against the white corner of the gradient
+            textShadow: '0 2px 4px rgba(0,0,0,0.6)'
+        }}>
+            "{oracleResponse}"
+        </p>
+    </div>
+)}
                 </div>
             </div>
 
