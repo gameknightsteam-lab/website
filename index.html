@@ -1174,31 +1174,40 @@
     }
 ];
 
-        // --- Gemini API Helper (No exponential backoff needed in this file context) ---
-        const callGemini = async (prompt, systemInstruction) => {
-        const apiKey = ""; // Injected by environment
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            systemInstruction: { parts: [{ text: systemInstruction }] }
-        };
+        // --- Gemini API Helper ---
+const callGemini = async (prompt, systemInstruction) => {
+    // REPLACE THIS TEXT WITH YOUR ACTUAL KEY starting with "AIza..."
+    const apiKey = "AIzaSyAtkld4atdSwIdcOehTF9RtBqtJezmdozo"; 
+    
+    // CHANGED: Switched to the stable gemini-1.5-flash model
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] }
+    };
 
-        try {
-            const response = await fetch(url, {
+    try {
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-            });
+        });
 
-            if (!response.ok) throw new Error('API Call Failed');
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "The spirits are silent right now. Try again later.";
-        } catch (error) {
-            console.error(error);
-            return "The magic faded... please try again.";
+        if (!response.ok) {
+            // Log the specific error for debugging
+            const errorData = await response.json();
+            console.error("Gemini API Error:", errorData);
+            throw new Error(`API Error: ${response.status}`);
         }
-        };
+        
+        const data = await response.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "The spirits are silent right now. Try again later.";
+    } catch (error) {
+        console.error("Fetch error:", error);
+        return "The magic faded... please try again. (Check console for error details)";
+    }
+};
 
         // --- Components ---
 
